@@ -22,36 +22,29 @@
 				<button type="button" class="bprev" id = 'bprv'>-</button>
 				<button type="button" class="bhome"><a href=".\index.html">Home</a></button>
 				<button type="button" class="bnext" id = 'bnxt' >+</button>
-				<button type="button" class="btn"><a href=".\vr.html">--VR--</a></button>	
+				<button type="button" class="btn"><a href=".\cs2vr.html">--VR--</a></button>	
 				<p id ='imgName'></p>
 			</div>
 		</div>
 		<script type="module">
-			import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r108/build/three.module.js';
-			
+			import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r108/build/three.module.js';			
 			var camera, scene, renderer,mesh, imgName;
-            
 			var isUserInteracting = false,
 				onMouseDownMouseX = 0, onMouseDownMouseY = 0,
 				lon = 0, onMouseDownLon = 0,
 				lat = 0, onMouseDownLat = 0,
 				phi = 0, theta = 0;
-
 			var imgNum = 0;
 			var curImgNum = imgNum;
-			var maxImgNum = 82;
+			var maxImgNum = 83;
 			var path = "./pano2/"
 			var name = "./pano2/"+"CS2_ ("+imgNum+").jpg";
-
 			imgName = document.getElementById('imgName');
 			imgName.textContent = name;
-
 			var bNext = document.getElementById('bnxt')
 			var bPrev = document.getElementById('bprv')
 			bNext.addEventListener('mousedown', nextImage, false);
-			bPrev.addEventListener('mousedown', prevImage, false);				
-			
-			
+			bPrev.addEventListener('mousedown', prevImage, false);
 			function nextImage()
 			{
 				if (imgNum <= maxImgNum){
@@ -86,7 +79,6 @@
 				scene.add(newmesh);
 				curMesh = newmesh;
 			}
-
 			var geometry = new THREE.SphereBufferGeometry( 500, 60, 40 );
 			geometry.scale( - 1, 1, 1 );				
 			geometry.rotateY(-9.7);
@@ -94,12 +86,10 @@
 			var material = new THREE.MeshBasicMaterial( { map: texture } );
 			mesh = new THREE.Mesh( geometry, material );
 			var curMesh = mesh;
-
 			if (true){
 				init();
 				animate();
 			}
-
 			function init() {
 				
 				var container;				
@@ -149,7 +139,6 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 				
 			}
-
 			function onWindowResize() {
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
