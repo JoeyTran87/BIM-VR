@@ -1,224 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>TCXDHCM-VR-CS1</title>
-    
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no">	   
-		<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
-		<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<head>
+	<title>TCXDHCM-VR-CS1</title>
+
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
+	<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script> -->
-		<link rel="stylesheet" href="pano.css">
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-	
-	
-	</head>
-	<body>
-		<div id="container">
+	<link rel="stylesheet" href="pano.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
+</head>
+
+<body>
+	<div id="container">
 		<!-- <canvas id = 'container'></canvas> -->
-			<div class = 'dnav' id = 'info'>			
-				<button type="button" class="bprev" id = 'bprv'>-</button>
-				<button type="button" class="bhome"><a href=".\index.html">Home</a></button>
-				<button type="button" class="bnext" id = 'bnxt' >+</button>
-				<button type="button" class="btn"><a href=".\cs1vr.html">--VR--</a></button>	
-				<p id ='imgName'></p>
-			</div>
+		<div class='dnav' id='info'>
+			<button type="button" class="bprev" id='bprv' title="Xem ảnh Sau">
+				<<< /button>
+					<button type="button" class="bhome"><a href=".\index.html"
+							title="Quay về trang chủ">Home</a></button>
+					<button type="button" class="bnext" id='bnxt' title="Xem ảnh Trước tiếp theo">>></button>
+					<button type="button" class="btn" title="Đi tới Ứng dụng 360 độ"><a
+							href=".\cs1vr.html">--360--</a></button>
+					<p id='imgName'></p>
 		</div>
-		<script type="module">
-			import * as THREE from './libs/three/three.module.js';
-			import { VRButton } from './libs/three/jsm/VRButton.js';
-			import { XRControllerModelFactory } from './libs/three/jsm/XRControllerModelFactory.js';
-			import { BoxLineGeometry } from './libs/three/jsm/BoxLineGeometry.js';
-			import { Stats } from './libs/stats.module.js';
-			import { OrbitControls } from './libs/three/jsm/OrbitControls.js';
-			import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
-			import { ColladaLoader } from './libs/three/loaders/ColladaLoader.js';
-			
-			var camera, scene, renderer,mesh, imgName;
-            
-			var isUserInteracting = false,
-				onMouseDownMouseX = 0, onMouseDownMouseY = 0,
-				lon = 0, onMouseDownLon = 0,
-				lat = 0, onMouseDownLat = 0,
-				phi = 0, theta = 0;
+	</div>
+	<script type="module">
+		import * as THREE from './libs/three/three.module.js';
+		import { VRButton } from './libs/three/jsm/VRButton.js';
+		import { XRControllerModelFactory } from './libs/three/jsm/XRControllerModelFactory.js';
+		import { BoxLineGeometry } from './libs/three/jsm/BoxLineGeometry.js';
+		import { Stats } from './libs/stats.module.js';
+		import { OrbitControls } from './libs/three/jsm/OrbitControls.js';
+		import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
+		import { ColladaLoader } from './libs/three/loaders/ColladaLoader.js';
 
-			var imgNum = 0;
-			var curImgNum = imgNum;
-			var maxImgNum = 21;
-			var path = "./pano/"
-			var name = path+"CS1_ ("+imgNum+").jpg";
+		var camera, scene, renderer, mesh, imgName;
 
-			imgName = document.getElementById('imgName');
+		var isUserInteracting = false,
+			onMouseDownMouseX = 0, onMouseDownMouseY = 0,
+			lon = 0, onMouseDownLon = 0,
+			lat = 0, onMouseDownLat = 0,
+			phi = 0, theta = 0;
+
+		var imgNum = 0;
+		var curImgNum = imgNum;
+		var maxImgNum = 21;
+		var path = "./pano/"
+		var name = path + "CS1_ (" + imgNum + ").jpg";
+
+		imgName = document.getElementById('imgName');
+		imgName.textContent = name;
+
+		var bNext = document.getElementById('bnxt')
+		var bPrev = document.getElementById('bprv')
+		bNext.onclick = nextImage
+		bPrev.onclick = prevImage
+
+		function nextImage() {
+			if (imgNum <= maxImgNum) {
+				imgNum += 1;
+			}
+			if (imgNum > maxImgNum) {
+				imgNum = 0;
+			}
+			curImgNum = imgNum;
+			name = "./pano/CS1_ (" + imgNum + ").jpg";
 			imgName.textContent = name;
+			localStorage.setItem('current_img', name);
 
-			var bNext = document.getElementById('bnxt')
-			var bPrev = document.getElementById('bprv')
-			bNext.addEventListener('mousedown', nextImage, false);
-			bPrev.addEventListener('mousedown', prevImage, false);
+			var newtexture = new THREE.TextureLoader().load(name);
+			var newmaterial = new THREE.MeshBasicMaterial({ map: newtexture });
+			var newmesh = new THREE.Mesh(geometry, newmaterial);
 
-			function nextImage()
-			{
-				if (imgNum <= maxImgNum){
-					imgNum+= 1;
-				}
-				if(imgNum > maxImgNum){
-					imgNum = 0;					
-				}
-				curImgNum = imgNum;
-				name  = "./pano/CS1_ ("+imgNum+").jpg";
-				imgName.textContent = name;
+			scene.remove(curMesh);
+			scene.add(newmesh);
+			curMesh = newmesh;
 
-				var newtexture = new THREE.TextureLoader().load(name);
-				var newmaterial = new THREE.MeshBasicMaterial( { map: newtexture } );
-				var newmesh = new THREE.Mesh( geometry, newmaterial );
-
-				scene.remove(curMesh);
-				scene.add(newmesh);
-				curMesh = newmesh;
-
+		}
+		function prevImage() {
+			if (imgNum == 0) {
+				imgNum = maxImgNum;
 			}
-			function prevImage(){				
-				if(imgNum == 0){
-					imgNum = maxImgNum;
-				}
-				else{imgNum -= 1;}
-				curImgNum = imgNum;
-				name  = "./pano/CS1_ ("+imgNum+").jpg";
-				imgName.textContent = name;
-				var newtexture = new THREE.TextureLoader().load(name);
-				var newmaterial = new THREE.MeshBasicMaterial( { map: newtexture } );
-				var newmesh = new THREE.Mesh( geometry, newmaterial );
+			else { imgNum -= 1; }
+			curImgNum = imgNum;
+			name = "./pano/CS1_ (" + imgNum + ").jpg";
+			imgName.textContent = name;
+			localStorage.setItem('current_img', name);
 
-				scene.remove(curMesh);
-				scene.add(newmesh);
-				curMesh = newmesh;
+			var newtexture = new THREE.TextureLoader().load(name);
+			var newmaterial = new THREE.MeshBasicMaterial({ map: newtexture });
+			var newmesh = new THREE.Mesh(geometry, newmaterial);
+
+			scene.remove(curMesh);
+			scene.add(newmesh);
+			curMesh = newmesh;
+		}
+
+		var geometry = new THREE.SphereBufferGeometry(500, 60, 40);
+		geometry.scale(- 1, 1, 1);
+		geometry.rotateY(-9.7);
+		var texture = new THREE.TextureLoader().load(name);
+		var material = new THREE.MeshBasicMaterial({ map: texture });
+		mesh = new THREE.Mesh(geometry, material);
+		var curMesh = mesh;
+		if (true) {
+			init();
+			animate();
+		}
+
+		function init() {
+
+			var container;
+			container = document.createElement('threejs');
+			document.body.appendChild(container)
+			camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+			camera.target = new THREE.Vector3(0, 1, 0);
+			renderer = new THREE.WebGLRenderer({ antialias: true });
+			renderer.setPixelRatio(window.devicePixelRatio);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.outputEncoding = THREE.sRGBEncoding;
+			container.appendChild(renderer.domElement);
+			scene = new THREE.Scene();
+			// invert the geometry on the x-axis so that all of the faces point inward				
+
+			scene.add(mesh);
+			document.addEventListener('mousedown', onPointerStart, false);
+			document.addEventListener('mousemove', onPointerMove, false);
+			document.addEventListener('mouseup', onPointerUp, false);
+			// document.addEventListener( 'wheel', onDocumentMouseWheel, false );
+			document.addEventListener('touchstart', onPointerStart, false);
+			document.addEventListener('touchmove', onPointerMove, false);
+			document.addEventListener('touchend', onPointerUp, false);
+			//
+			document.addEventListener('dragover', function (event) {
+				event.preventDefault();
+				event.dataTransfer.dropEffect = 'copy';
+			}, false);
+			document.addEventListener('dragenter', function () {
+				document.body.style.opacity = 0.5;
+			}, false);
+			document.addEventListener('dragleave', function () {
+				document.body.style.opacity = 1;
+			}, false);
+
+			// document.addEventListener( 'drop', function ( event ) {
+			// 	event.preventDefault();
+			// 	var reader = new FileReader();
+			// 	reader.addEventListener( 'load', function ( event ) {
+			// 		material.map.image.src = event.target.result;
+			// 		material.map.needsUpdate = true;
+			// 	}, false );
+			// 	reader.readAsDataURL( event.dataTransfer.files[ 0 ] );
+			// 	document.body.style.opacity = 1;
+			// }, false );
+			//
+			window.addEventListener('resize', onWindowResize, false);
+		}
+
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+
+		}
+		function onPointerStart(event) {
+			isUserInteracting = true;
+			var clientX = event.clientX || event.touches[0].clientX;
+			var clientY = event.clientY || event.touches[0].clientY;
+			onMouseDownMouseX = clientX;
+			onMouseDownMouseY = clientY;
+			onMouseDownLon = lon;
+			onMouseDownLat = lat;
+		}
+		function onPointerMove(event) {
+			if (isUserInteracting === true) {
+				var clientX = event.clientX || event.touches[0].clientX;
+				var clientY = event.clientY || event.touches[0].clientY;
+				lon = (onMouseDownMouseX - clientX) * 0.1 + onMouseDownLon;
+				lat = (clientY - onMouseDownMouseY) * 0.1 + onMouseDownLat;
+			}
+		}
+		function onPointerUp() {
+			isUserInteracting = false;
+		}
+		function onDocumentMouseWheel(event) {
+			var fov = camera.fov + event.deltaY * 0.05;
+			camera.fov = THREE.Math.clamp(fov, 10, 75);
+			camera.updateProjectionMatrix();
+		}
+		function animate() {
+			// console.log(name);					
+
+			requestAnimationFrame(animate);
+
+			update();
+		}
+		function update() {
+			if (isUserInteracting === false) {
+				lon += 0.04;
 			}
 
-			var geometry = new THREE.SphereBufferGeometry( 500, 60, 40 );
-			geometry.scale( - 1, 1, 1 );				
-			geometry.rotateY(-9.7);
-			var texture = new THREE.TextureLoader().load(name);
-			var material = new THREE.MeshBasicMaterial( { map: texture } );
-			mesh = new THREE.Mesh( geometry, material );
-			var curMesh = mesh;
-			if (true){
-				init();
-				animate();
-			}
+			lat = Math.max(- 85, Math.min(85, lat));
+			phi = THREE.Math.degToRad(90 - lat);
+			theta = THREE.Math.degToRad(lon);
+			camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+			camera.target.y = 500 * Math.cos(phi);
+			camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+			camera.lookAt(camera.target);
+			/*
+			// distortion
+			camera.position.copy( camera.target ).negate();
+			*/
 
-			function init() {
-				
-				var container;				
-				container = document.createElement('threejs');
-				document.body.appendChild(container)
-				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-				camera.target = new THREE.Vector3( 0, 1, 0 );
-				renderer = new THREE.WebGLRenderer({ antialias: true});
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.outputEncoding = THREE.sRGBEncoding;
-				container.appendChild( renderer.domElement );
-				scene = new THREE.Scene();				
-				// invert the geometry on the x-axis so that all of the faces point inward				
-				
-				scene.add(mesh);
-				document.addEventListener( 'mousedown', onPointerStart, false );
-				document.addEventListener( 'mousemove', onPointerMove, false );
-				document.addEventListener( 'mouseup', onPointerUp, false );
-				// document.addEventListener( 'wheel', onDocumentMouseWheel, false );
-				document.addEventListener( 'touchstart', onPointerStart, false );
-				document.addEventListener( 'touchmove', onPointerMove, false );
-				document.addEventListener( 'touchend', onPointerUp, false );
-				//
-				document.addEventListener( 'dragover', function ( event ) {
-					event.preventDefault();
-					event.dataTransfer.dropEffect = 'copy';
-				}, false );
-				document.addEventListener( 'dragenter', function () {
-					document.body.style.opacity = 0.5;
-				}, false );
-				document.addEventListener( 'dragleave', function () {
-					document.body.style.opacity = 1;
-				}, false );
+			renderer.render(scene, camera);
+		}
 
-				// document.addEventListener( 'drop', function ( event ) {
-				// 	event.preventDefault();
-				// 	var reader = new FileReader();
-				// 	reader.addEventListener( 'load', function ( event ) {
-				// 		material.map.image.src = event.target.result;
-				// 		material.map.needsUpdate = true;
-				// 	}, false );
-				// 	reader.readAsDataURL( event.dataTransfer.files[ 0 ] );
-				// 	document.body.style.opacity = 1;
-				// }, false );
-				//
-				window.addEventListener( 'resize', onWindowResize, false );				
-			}
+		// var btt = document.getElementById('info');
+		// container.appendChild(btt)
+		console.log(document);
+	</script>
 
-			function onWindowResize() {
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-				renderer.setSize( window.innerWidth, window.innerHeight );
+</body>
 
-			}
-			function onPointerStart( event ) {
-				isUserInteracting = true;
-				var clientX = event.clientX || event.touches[ 0 ].clientX;
-				var clientY = event.clientY || event.touches[ 0 ].clientY;
-				onMouseDownMouseX = clientX;
-				onMouseDownMouseY = clientY;
-				onMouseDownLon = lon;
-				onMouseDownLat = lat;
-			}
-			function onPointerMove( event ) {
-				if ( isUserInteracting === true ) {
-					var clientX = event.clientX || event.touches[ 0 ].clientX;
-					var clientY = event.clientY || event.touches[ 0 ].clientY;
-					lon = ( onMouseDownMouseX - clientX ) * 0.1 + onMouseDownLon;
-					lat = ( clientY - onMouseDownMouseY ) * 0.1 + onMouseDownLat;
-				}
-			}
-			function onPointerUp() {
-				isUserInteracting = false;
-			}
-			function onDocumentMouseWheel( event ) {
-				var fov = camera.fov + event.deltaY * 0.05;
-				camera.fov = THREE.Math.clamp( fov, 10, 75 );
-				camera.updateProjectionMatrix();
-			}
-			function animate() {				
-				// console.log(name);					
-
-				requestAnimationFrame(animate);
-
-				update();
-			}
-			function update() {
-				if ( isUserInteracting === false ) {
-					lon += 0.04;
-				}
-
-				lat = Math.max( - 85, Math.min( 85, lat ) );
-				phi = THREE.Math.degToRad( 90 - lat );
-				theta = THREE.Math.degToRad( lon );
-				camera.target.x = 500 * Math.sin( phi ) * Math.cos( theta );
-				camera.target.y = 500 * Math.cos( phi );
-				camera.target.z = 500 * Math.sin( phi ) * Math.sin( theta );
-				camera.lookAt( camera.target );
-				/*
-				// distortion
-				camera.position.copy( camera.target ).negate();
-				*/		
-
-				renderer.render(scene,camera);
-			}
-			
-			// var btt = document.getElementById('info');
-			// container.appendChild(btt)
-			console.log(document);
-		</script>
-		
-	</body>
 </html>

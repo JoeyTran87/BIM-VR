@@ -13,16 +13,18 @@
 	<body>
         <div id="container">
             <!-- <canvas id = 'container'></canvas> -->
-                <!-- <div class = 'dnav' id = 'info'>			
-                    <button type="button" class="bprev" id = 'bprv'>-</button>
-                    <button type="button" class="bhome"><a href=".\index.html">Home</a></button>
-                    <button type="button" class="bnext" id = 'bnxt' >+</button>
-                    <button type="button" class="btn"><a href=".\coso1.html">--PANO--</a></button>	
-                    <p id ='imgName'></p>
-                </div> -->
-            </div>
+            <div class = 'dnav' id = 'info'>			
+				<button type="button" class="bprev" id = 'bprv_vr' title="Xem ảnh Sau"><<</button>
+				<button type="button" class="bhome"><a href=".\index.html" title="Quay về trang chủ">Home</a></button>
+				<button type="button" class="bnext" id = 'bnxt_vr' title="Xem ảnh Trước tiếp theo">>></button>
+				<!-- <button type="button" class="btn" title="Tới Ứng dụng VR"><a href=".\cs1vr.html">--VR--</a></button>	 -->
+				<p id ='tip'>TIPS: Chạm quét màn hình Thiết bị di động, hoặc Rê chuột trên máy tính, để Điều hướng Nhìn</p>
+				<p id ='imgNameVr'></p>
+				<p id ='debug'></p>
+			</div>
+        </div>
         <script type="module">
-            import { App } from './app4.js';
+            import { App } from './app_VR.js';
 
             document.addEventListener("DOMContentLoaded", function(){
                 const app = new App("pano","CS1");
