@@ -6,39 +6,94 @@ import { Stats } from './libs/stats.module.js';
 import { OrbitControls } from './libs/three/jsm/OrbitControls.js';
 import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
 import { ColladaLoader } from './libs/three/loaders/ColladaLoader.js';
+import{GUI} from 'https://threejsfundamentals.org/3rdparty/dat.gui.module.js';
 
+class MinMaxGUIHelper {
+    constructor(obj, minProp, maxProp, minDif) {
+      this.obj = obj;
+      this.minProp = minProp;
+      this.maxProp = maxProp;
+      this.minDif = minDif;
+    }
+    get min() {
+      return this.obj[this.minProp];
+    }
+    set min(v) {
+      this.obj[this.minProp] = v;
+      this.obj[this.maxProp] = Math.max(this.obj[this.maxProp], v + this.minDif);
+    }
+    get max() {
+      return this.obj[this.maxProp];
+    }
+    set max(v) {
+      this.obj[this.maxProp] = v;
+      this.min = this.min;  // this will call the min setter
+    }
+  }
+
+   
 class App {
-
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
+    update_cam_pos(){
+        localStorage.setItem('cam_pos_x',this.camera.position.x)
+        localStorage.setItem('cam_pos_y',this.camera.position.y)
+        localStorage.setItem('cam_pos_z',this.camera.position.z)
+    }
+    update_dolly(){
+        this.polly.position.set(localStorage.getItem('cam_pos_x'),localStorage.getItem('cam_pos_y'),localStorage.getItem('cam_pos_z'))
+    }
+    update_cam() {
+        this.camera.updateProjectionMatrix();
+      }
     constructor() {
-        var posX = 30
-        var posY = 1.6
-        var posZ = 70
-        this.walkspeed = 5
-        const container = document.createElement('div')
-        document.body.appendChild(container)
+        //SCENE        
+        this.scene_manager()        
+        
+        this.walkspeed = 3
+        
+        //container
+        this.container = document.createElement('vrdiv')
+        document.body.appendChild(this.container)
+        
         this.clock = new THREE.Clock()
         //camera
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 20000)
+        var posX = 30
+        var posY = 1
+        var posZ = 90        
         this.camera.position.set(posX, posY, posZ)
-        this.scene = new THREE.Scene()
-        console.log({ element: this.scene.background })
-        //light
-        const light0 = new THREE.HemisphereLight(0xffffff, 0x404040)
-        light0.intensity = 0.5
-        this.scene.add(light0)
-        const light = new THREE.DirectionalLight(0xffffff)
-        light.position.set(1, 1, 1).normalize()
-        light.intensity = 0.5
-        this.scene.add(light)
+        this.update_cam_pos()  
+        console.log(this.camera.position)  
+        {//GUI
+            this.gui = new GUI();
+            this.gui.add(this.camera, 'fov', 1, 180).onChange(this.camera)
+        }
+
+        {//LIGHT
+            const light0 = new THREE.HemisphereLight(0xffffff, 0x404040)
+            light0.intensity = 0.5
+            this.scene.add(light0)
+            const light = new THREE.DirectionalLight(0xffffff)
+            light.position.set(1, 1, 1).normalize()
+            light.intensity = 0.5
+            this.scene.add(light)
+        }
+
         //renderer
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
         this.renderer.setPixelRatio(window.devicePixelRatio)
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.renderer.outputEncoding = THREE.sRGBEncoding
-        container.appendChild(this.renderer.domElement)
+        this.container.appendChild(this.renderer.domElement)
         //controller
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-        this.controls.target.set(0, 4, 0)
+        this.controls.target.set(0, 5, 0)
         this.controls.update()
         this.stats = new Stats()
         //raycaster
@@ -47,7 +102,6 @@ class App {
         this.workingVector = new THREE.Vector3()
         this.origin = new THREE.Vector3()
         //execute
-        this.initScene()
         this.setupVR()
         //event
         window.addEventListener('resize', this.resize.bind(this))
@@ -55,14 +109,29 @@ class App {
         //animation
         this.renderer.setAnimationLoop(this.render.bind(this))
     }
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
     random(min, max) {
         return Math.random() * (max - min) + min;
     }
-
-    initScene() {
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
+    scene_manager(){
+        this.scene = new THREE.Scene()
         this.scene.background = new THREE.Color(0xffffff);
         //fog
         this.scene.fog = new THREE.Fog(0xa0a0a0, 50, 2000);
+                
         // ground
         // const ground = new THREE.Mesh( new THREE.PlaneBufferGeometry( 200, 200 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
         // ground.rotation.x = - Math.PI / 2;
@@ -91,6 +160,13 @@ class App {
         //LOAD GLTF REVIT MODEL
         this.loadGltf();
     }
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
     loadGltf() {
         const gltfLoader = new GLTFLoader();
         var link100 = [
@@ -166,12 +242,10 @@ class App {
         //         console.log(err);
         //     }            
         // }
-
         // gltfLoader.load(link102, (gltf) => {
         // const root = gltf.scene;
         // this.scene.add(root);    
         // });
-
         // compute the box that contains all the stuff
         // from root and below
         //   const box = new THREE.Box3().setFromObject(root);    
@@ -184,51 +258,87 @@ class App {
         //   controls.target.copy(boxCenter);
         //   controls.update();        
     }
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
     setupVR() {
-        // var currentSession = null
-        this.renderer.xr.enabled = true;
-        // const button = new VRButton( this.renderer )
-        var vrbutton = VRButton.createButton(this.renderer)
-        vrbutton.addEventListener('selectstart', onSelectStart)
-        document.body.appendChild(vrbutton)
-        // var vrButton = document.getElementById('VRButton')
-        const self = this;
+        this.renderer.xr.enabled = true
+        this.vrbutton = VRButton.createButton(this.renderer)
+        this.vrbutton.addEventListener('selectstart', onSelectStart_button)
+        this.vrbutton.title = 'Click me -> Tới Trình Thực tế ảo VR'
+        document.body.appendChild(this.vrbutton)        
+        // FUNCTION EVENT
+        function onSelectStart_button() {
+            this.userData.selectPressed = true             
+        }
         function onSelectStart() {
             this.userData.selectPressed = true
         }
         function onSelectEnd() {
             this.userData.selectPressed = false;
         }
+
+        //COLTROLLER
+        const controllerModelFactory = new XRControllerModelFactory()
         // LEFT CONTROLER
         this.controller = this.renderer.xr.getController(0)
         this.controller.addEventListener('selectstart', onSelectStart)
         this.controller.addEventListener('selectend', onSelectEnd)
         this.controller.addEventListener('touchstart', onSelectStart)
-        this.controller.addEventListener('touchend', onSelectEnd)
-        this.controller.addEventListener('connected', function (event) {
-            const mesh = self.buildController.call(self, event.data)
-            mesh.scale.z = 0
-            this.add(mesh)
-        })
-        this.controller.addEventListener('disconnected', function () {
-            this.remove(this.children[0])
-            self.controller = null
-            self.controllerGrip = null
-        })
+        this.controller.addEventListener('touchend', onSelectEnd)   
         this.scene.add(this.controller)
-        const controllerModelFactory = new XRControllerModelFactory()
         this.controllerGrip = this.renderer.xr.getControllerGrip(0)
         this.controllerGrip.add(controllerModelFactory.createControllerModel(this.controllerGrip))
         this.scene.add(this.controllerGrip)
-        this.dolly = new THREE.Object3D()
-        this.dolly.position.z = 5
-        this.dolly.add(this.camera)
-        this.scene.add(this.dolly)
+
+        // this.controller.addEventListener('connected', function (event) {
+        //     const mesh = self.buildController.call(self, event.data)
+        //     mesh.scale.z = 0
+        //     this.add(mesh)
+        // })
+        // this.controller.addEventListener('disconnected', function () {
+        //     this.remove(this.children[0])
+        //     self.controller = null
+        //     self.controllerGrip = null
+        // }) 
+
+        // RIGHT CONTROLER
+        this.controller1 = this.renderer.xr.getController(1)
+        this.controller1.addEventListener('selectstart', onSelectStart)
+        this.controller1.addEventListener('selectend', onSelectEnd)
+        this.controller1.addEventListener('touchstart', onSelectStart)
+        this.controller1.addEventListener('touchend', onSelectEnd)
+        this.scene.add(this.controller1)
+        this.controllerGrip1 = this.renderer.xr.getControllerGrip(1)
+        this.controllerGrip1.add(controllerModelFactory.createControllerModel(this.controllerGrip1))
+        this.scene.add(this.controllerGrip1)              
+        
+        
+        console.log(this.camera.position)
+        // this.cameravr = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 20000)
+        this.dolly = new THREE.Object3D()   
         this.dummyCam = new THREE.Object3D()
+        // this.update_dolly()
+        this.dolly.add(this.camera)
+        console.log(this.camera.position)
+        this.scene.add(this.dolly)
+        console.log(this.camera.position)
         this.camera.add(this.dummyCam)
-        // console.log(this.renderer.xr)
+        // this.dolly.position.set( 0, 0, 0 )
+        // this.dolly.position.set( 500, 1.6, 500 )        
         this.scene.fog = new THREE.Fog(0xa0a0a0, 50, 2000)
     }
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
     buildController(data) {
         let geometry, material
         switch (data.targetRayMode) {
@@ -244,7 +354,108 @@ class App {
                 return new THREE.Mesh(geometry, material)
         }
     }
-    handleController(controller, dt) {
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
+    
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
+    resize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix()
+        this.renderer.setSize(window.innerWidth, window.innerHeight)
+    }
+    /*
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------------------//
+    */
+    render() {
+        const dt = this.clock.getDelta()
+        this.stats.update()
+        this.camera.updateProjectionMatrix()
+        this.update_cam_pos()
+        
+        if (this.controller) this.handleController_L(this.controller, dt)
+        if (this.controller1) this.handleController_R(this.controller1, dt)
+        this.renderer.render(this.scene, this.camera)
+
+        // console.log(this.camera.type)
+        // console.log(this.camera.position)
+        // console.log(this.controls.target)
+        // console.log(this.dolly.position)
+        // console.log(this.camera.position)
+    }
+
+
+    //-------------------------------------------------------------------------//
+    //-------------------------------------------------------------------------//
+    //-------------------------------------------------------------------------//
+
+    handleController_L(controller, dt) {
+        if (controller.userData.selectPressed) {
+            console.log(this.camera.position)
+            const wallLimit = 1.3            
+            //walk speed
+            const speed = this.walkspeed
+            let pos = this.dolly.position.clone()
+            pos.y += 1
+            let dir = new THREE.Vector3();
+            //Store original dolly rotation
+            const quaternion = this.dolly.quaternion.clone()
+            //Get rotation for movement from the headset pose
+            this.dolly.quaternion.copy(this.dummyCam.getWorldQuaternion())
+            this.dolly.getWorldDirection(dir)
+            dir.negate()
+            this.raycaster.set(pos, dir)
+            let blocked = false
+            let intersect = this.raycaster.intersectObjects(this.colliders)
+            if (intersect.length > 0) {
+                if (intersect[0].distance < wallLimit) blocked = true
+            }
+            if (!blocked) {
+                this.dolly.translateZ(-dt * speed);
+                pos = this.dolly.getWorldPosition(this.origin)
+            }
+            //cast left
+            dir.set(-1, 0, 0)
+            dir.applyMatrix4(this.dolly.matrix)
+            dir.normalize()
+            this.raycaster.set(pos, dir)
+            intersect = this.raycaster.intersectObjects(this.colliders)
+            if (intersect.length > 0) {
+                if (intersect[0].distance < wallLimit) this.dolly.translateX(wallLimit - intersect[0].distance)
+            }
+            //cast right
+            dir.set(1, 0, 0);
+            dir.applyMatrix4(this.dolly.matrix);
+            dir.normalize();
+            this.raycaster.set(pos, dir)
+            intersect = this.raycaster.intersectObjects(this.colliders)
+            if (intersect.length > 0) {
+                if (intersect[0].distance < wallLimit) this.dolly.translateX(intersect[0].distance - wallLimit)
+            }
+            this.dolly.position.y = 0
+            //Restore the original rotation
+            this.dolly.quaternion.copy(quaternion)
+        }
+        // if (controller.userData.selectPressed){
+        //     pass
+        // }
+    }
+//-------------------------------------------------------------------------//
+    handleController_R(controller, dt) {
         if (controller.userData.selectPressed) {
             const wallLimit = 1.3
             //walk speed
@@ -290,18 +501,9 @@ class App {
             //Restore the original rotation
             this.dolly.quaternion.copy(quaternion)
         }
-    }
-    resize() {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix()
-        this.renderer.setSize(window.innerWidth, window.innerHeight)
-    }
-    render() {
-        const dt = this.clock.getDelta()
-        this.stats.update()
-        // this.dolly.position.set( 500, 1.6, 500 )
-        if (this.controller) this.handleController(this.controller, dt)
-        this.renderer.render(this.scene, this.camera)
+        // if (controller.userData.selectPressed){
+        //     pass
+        // }
     }
 }
 
